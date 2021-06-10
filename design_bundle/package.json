@@ -21,6 +21,9 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
-    "calendar": "git+https://github.com/Nefonfo/simple_calendar_input.git"
+    "calendar": "git+https://github.com/Nefonfo/simple_calendar_input.git",
+    "moment": "^2.29.1",
+    "sweetalert2": "^11.0.16",
+    "swiper": "^6.7.0"
   }
 }
