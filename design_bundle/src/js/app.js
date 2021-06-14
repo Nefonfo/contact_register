@@ -1,7 +1,7 @@
 import 'calendar/src/js/calendar';
 import Swiper from 'swiper/bundle';
 import moment from 'moment';
-import Swal from 'sweetalert2'
+import Swal from 'sweetalert2';
 
 const validation = (name, date, phone) => {
     let result = '';
@@ -22,6 +22,7 @@ const validation = (name, date, phone) => {
 
 const post_data = (validate_result, post_obj, success_title) => {
     if(validate_result === '') {
+
         Swal.fire({
             title: '¿Estas seguro?',
             icon: 'warning',
@@ -29,21 +30,25 @@ const post_data = (validate_result, post_obj, success_title) => {
             confirmButtonText: 'Si',
             showLoaderOnConfirm: true,
             preConfirm: () => {
-              return fetch('/backend', {
+                var myHeaders = new Headers();
+                myHeaders.append("Cookie", "PHPSESSID=fk18mvjh1knohc6muofq3en0qq");
+                myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+                var requestOptions = {
                     method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(post_obj)
-                })
+                    headers: myHeaders,
+                    body: post_obj,
+                    redirect: 'follow'
+                };
+
+                return fetch("http://localhost:8000/backend.php", requestOptions)
                 .then(response => {
                   if (!response.ok) {
                     throw new Error(response.statusText)
                   }
-                  return response.json()
+                  return response.json();
                 })
                 .catch(error => {
+                    console.error(error);
                   Swal.showValidationMessage(
                     `Error en el servidor: ${error}`
                   )
@@ -63,7 +68,6 @@ const post_data = (validate_result, post_obj, success_title) => {
             }
         });
     } else {
-        console.log(validate_result);
         Swal.fire('Error', validate_result, 'error');
     }
 }
@@ -76,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         slidesPerView: 1,
         spaceBetween: 0,
-        loop: true,
+        loop: false,
         observer: true, 
         observeParents: true
     });
@@ -100,24 +104,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const data_phone = document.querySelector(`#phone${id}`);
 
         element.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
+            e.preventDefault();           
             const type = e.submitter.dataset.formAction;
             
             if(type === 'update') {
                 const validate_result = validation(data_name.value, data_birthday.value, data_phone.value);
-                post_data(validate_result, {
-                    id: id,
-                    name: data_name,
-                    birthday: data_birthday,
-                    phone: data_phone,
-                    type: type
-                }, 'Actualizado Correctamente');
+
+                const form = new URLSearchParams();
+                form.append('id', id);
+                form.append('name', data_name.value);
+                form.append('birthday', data_birthday.value);
+                form.append('phone', data_phone.value);
+                form.append('type', type);
+                post_data(validate_result, form, 'Actualizado Correctamente');
             } else if(type === 'delete') {
-                post_data('', {
-                    id: id,
-                    type: type
-                }, 'Eliminado Correctamente');
+
+                const form = new URLSearchParams();
+                form.append('id', id);
+                form.append('type', type);
+
+                post_data('', form, 'Eliminado Correctamente');
             }
             
         });
@@ -133,12 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const validate_result = validation(create_name.value, create_birthday.value, create_phone.value);
 
-        post_data(validate_result, {
-            name: create_name,
-            birthday: create_birthday,
-            phone: create_phone,
-            type: 'create'
-        }, 'Creado Exitosamente');
+        const form = new URLSearchParams();
+        
+        form.append('name', create_name.value);
+        form.append('birthday', create_birthday.value);
+        form.append('phone', create_phone.value);
+        form.append('type', 'add');
+
+        post_data(validate_result, form, 'Creado Exitosamente');
     });
 
 });
